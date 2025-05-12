@@ -1,36 +1,69 @@
-# nba-clutch-dashboard
-Streamlit dashboard showing NBA clutch performance
-🏀 NBA Clutch Performance Dashboard
-This project visualizes NBA clutch performance in the final 5 minutes of close games. Built with Python, Streamlit, and the NBA API, it allows users to interactively explore key stats and shot data by player.
+# 🏀 NBA Clutch Performance Dashboard
 
-🚀 Live Demo: yourusername-nba-clutch-dashboard.streamlit.app
-(Replace with your actual Streamlit Cloud URL)
+An interactive dashboard that visualizes NBA player performance in the **final 5 minutes of close games**. Built with **Python**, **Streamlit**, and the **NBA API**.
 
-✅ Features
-⏱️ Collects clutch play-by-play data (last 5 minutes, 4th quarter)
+🔗 **Live Demo**: https://yourusername-nba-clutch-dashboard.streamlit.app  
+*(Replace with your actual Streamlit Cloud URL)*
 
-📊 Interactive Streamlit dashboard
+---
 
-📦 Deployed online via GitHub + Streamlit Cloud (free)
+## ✅ Features
 
-📁 Project Structure
-bash
-Copy
-Edit
-nba_clutch_dashboard/
-├── app.py                   # Streamlit dashboard code
-├── clutch_play_by_play.csv # Pre-fetched clutch game data
-└── README.md                # Project overview
-🧱 Phase 1: Collect Clutch Data
-Run this in Google Colab:
+- Collects clutch play-by-play data (4th quarter, last 5 minutes)
+- Streamlit dashboard for player-specific analysis
+- Visualizes FG%, attempts, and shot logs
+- Easy deployment with GitHub + Streamlit Cloud
 
+---
 
+## 📁 Files
+
+nba-clutch-dashboard/
+├── app.py # Streamlit app
+├── clutch_play_by_play.csv # Clutch game data
+└── README.md # Project overview
+
+## 🧱 Step-by-Step Instructions
+
+### Collect Clutch Data (Google Colab)
 
 !pip install nba_api
-Fetch clutch play-by-play data (last 5 minutes of the 4th quarter) using this script. The result will be saved as clutch_play_by_play.csv.
 
-💻 Phase 2: Build the Dashboard
-Create app.py with this code:
+## Then run this code to generate clutch_play_by_play.csv: 
+
+from nba_api.stats.endpoints import leaguegamefinder, playbyplayv2
+import pandas as pd
+import time
+
+gamefinder = leaguegamefinder.LeagueGameFinder(season_nullable='2023-24', league_id_nullable='00')
+games_df = gamefinder.get_data_frames()[0]
+game_ids = games_df['GAME_ID'].drop_duplicates().head(20).tolist()
+
+def convert_time(t):
+    try:
+        m, s = map(int, t.split(":"))
+        return m * 60 + s
+    except:
+        return 9999
+
+clutch_plays = []
+
+for game_id in game_ids:
+    try:
+        pbp = playbyplayv2.PlayByPlayV2(game_id=game_id)
+        df = pbp.get_data_frames()[0]
+        df['SECONDS_REMAINING'] = df['PCTIMESTRING'].apply(convert_time)
+        clutch_df = df[(df['PERIOD'] == 4) & (df['SECONDS_REMAINING'] <= 300)].copy()
+        clutch_df['GAME_ID'] = game_id
+        clutch_plays.append(clutch_df)
+        time.sleep(1)
+    except Exception as e:
+        print(f"Failed game {game_id}: {e}")
+
+clutch_data = pd.concat(clutch_plays, ignore_index=True)
+clutch_data.to_csv("clutch_play_by_play.csv", index=False) 
+
+## Create Dashboard: 
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -67,14 +100,3 @@ if attempts > 0:
     st.pyplot(fig)
 else:
     st.info("No shot data available for this player.")
-
-
-
-🛠️ Tools Used
-nba_api
-
-Pandas
-
-Streamlit
-
-Matplotlib
