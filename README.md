@@ -3,7 +3,7 @@
 An interactive dashboard that visualizes NBA player performance in the **final 5 minutes of close games**. Built with **Python**, **Streamlit**, and the **NBA API**.
 
 🔗 **Live Demo**: [(https://nba-clutch-dashboard-cswnnumnydavxpggtt3vtw.streamlit.app/) 
-*(Replace with your actual Streamlit Cloud URL)*
+
 
 ---
 
